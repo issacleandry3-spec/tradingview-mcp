@@ -3,7 +3,7 @@ name = "tradingview-mcp-server"
 version = "0.9.0"
 description = "Advanced AI Trading Intelligence Framework — MCP server with walk-forward backtesting, trade logs, equity curves, 1h timeframe, sentiment, Yahoo Finance, and 30+ technical analysis tools"
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10,<3.15"
 authors = [
   { name = "Atila Ahmettaner" }
 ]
@@ -37,6 +37,8 @@ dependencies = [
   # exist to prevent.
   "pandas>=2",
   "requests>=2.32",
+  "ta>=0.11",
+  "yfinance>=0.2",
   # Pinned to ==3.0.0 on purpose. 3.2.0 makes a bare Query() default to a
   # *stock* preset filter that silently returns 0 rows for crypto/futures
   # scans, which would break coin/screener/futures tools. The Docker build uses
