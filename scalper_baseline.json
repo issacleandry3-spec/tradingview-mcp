@@ -1,0 +1,14 @@
+{
+  "breakout_window": 30,
+  "take_profit": 0.05,
+  "stop_loss": 0.02,
+  "vol_mult": 3.0,
+  "max_hold_bars": 60,
+  "net_pnl": -143.89,
+  "cagr": -7.52,
+  "sharpe": -10.32,
+  "max_dd": -1.43,
+  "n_trades": 21,
+  "recorded_at": "2026-09-18",
+  "notes": "iter 493"
+}

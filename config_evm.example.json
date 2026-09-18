@@ -1,0 +1,19 @@
+{
+  "_comment": "No secrets here. ETH_PRIVATE_KEY, ETH_RPC_WS_URL, ETH_RPC_HTTP_URL, FLASHBOTS_SIGNING_KEY go in .env (see .env.example).",
+  "pool_address":            "UNISWAP_V2_OR_V3_POOL_ADDRESS",
+  "token_address":           "TOKEN_CONTRACT_ADDRESS",
+  "dev_wallet":              "DEV_CREATOR_WALLET_ADDRESS",
+  "your_wallet":             "YOUR_WALLET_ADDRESS",
+  "token_decimals":          18,
+  "position_amount_wei":     1000000000000000000,
+  "circulating_supply_wei":  1000000000000000000000000000,
+  "uniswap_version":         2,
+  "chain_id":                1,
+  "flashbots_tip_wei":       10000000000000000,
+  "uniswap_v2_router":       "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+  "uniswap_v3_router":       "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+  "weth_address":            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  "v3_fee_tier":             3000,
+  "slippage_bps":            100,
+  "blocks_ahead":            2
+}

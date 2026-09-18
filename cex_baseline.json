@@ -1,0 +1,44 @@
+{
+  "BTC/USDT": {
+    "breakout_window": 30,
+    "take_profit": 0.015,
+    "stop_loss": 0.006,
+    "vol_mult": 3.0,
+    "max_hold_bars": 60,
+    "net_pnl": -79.4242,
+    "cagr": -13.2233,
+    "sharpe": -25.6888,
+    "win_rate": 5.99,
+    "max_dd": -0.7995,
+    "recorded_at": "2026-09-18",
+    "notes": "best from 704-combo grid"
+  },
+  "ETH/USDT": {
+    "breakout_window": 30,
+    "take_profit": 0.02,
+    "stop_loss": 0.006,
+    "vol_mult": 3.0,
+    "max_hold_bars": 60,
+    "net_pnl": -75.8954,
+    "cagr": -12.4076,
+    "sharpe": -25.6207,
+    "win_rate": 13.23,
+    "max_dd": -0.7333,
+    "recorded_at": "2026-09-18",
+    "notes": "best from 704-combo grid"
+  },
+  "SOL/USDT": {
+    "breakout_window": 30,
+    "take_profit": 0.02,
+    "stop_loss": 0.003,
+    "vol_mult": 3.0,
+    "max_hold_bars": 60,
+    "net_pnl": -83.1505,
+    "cagr": -13.6345,
+    "sharpe": -25.5845,
+    "win_rate": 14.53,
+    "max_dd": -0.8263,
+    "recorded_at": "2026-09-18",
+    "notes": "best from 704-combo grid"
+  }
+}

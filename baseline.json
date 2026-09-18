@@ -1,0 +1,17 @@
+{
+  "short_window": 50,
+  "long_window": 200,
+  "ma_type": "sma",
+  "rsi_filter": false,
+  "vol_confirm": false,
+  "atr_sizing": false,
+  "regime_filter": false,
+  "cagr": 30.25,
+  "sharpe": 0.82,
+  "max_dd": -64.32,
+  "sortino": 1.22,
+  "calmar": 0.47,
+  "win_year_pct": 83.33,
+  "recorded_at": "2026-09-17",
+  "notes": "Seed baseline from initial SMA 50/200 backtest on BTC/USD Coinbase 2018-2024"
+}

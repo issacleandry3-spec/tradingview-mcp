@@ -1,0 +1,12 @@
+{
+  "_comment": "No secrets here. SOLANA_PRIVATE_KEY and HELIUS_API_KEY go in .env (see .env.example).",
+  "pool_address":        "RAYDIUM_OR_ORCA_POOL_PUBKEY",
+  "token_mint":          "TOKEN_MINT_PUBKEY",
+  "dev_wallet":          "DEV_CREATOR_WALLET_PUBKEY",
+  "your_wallet":         "YOUR_WALLET_PUBKEY",
+  "token_account":       "YOUR_SPL_TOKEN_ACCOUNT_PUBKEY",
+  "token_decimals":      6,
+  "position_amount":     1000000,
+  "circulating_supply":  1000000000,
+  "jito_tip_lamports":   100000
+}
