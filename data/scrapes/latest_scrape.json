@@ -1,0 +1,12 @@
+{
+  "source": "camo_fox_stealth",
+  "strategy_name": "EMA_Crossover_Trend",
+  "symbol": "BTC/USDT",
+  "timeframe": "1h",
+  "rules": {
+    "take_profit_pct": 0.045,
+    "stop_loss_pct": 0.02,
+    "sample_size": 142
+  },
+  "timestamp": 1789752818
+}
