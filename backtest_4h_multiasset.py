@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Run the Tier-2 best config (SMA 10/200 + ATR 1%/2.0×) across ETH, SOL, LINK.
+Position size = min(ATR-based, MAX_POS_PCT × equity) to cap compounding blow-up.
 Compares each asset against the BTC baseline and reports cross-asset consistency.
 """
 from __future__ import annotations
@@ -22,12 +23,12 @@ ROOT          = Path(__file__).parent
 BASELINE_FILE = ROOT / "baseline_4h.json"
 JOURNAL_FILE  = ROOT / "strategy_journal.csv"
 
-FEE      = 0.006
-CAPITAL  = 100_000.0
-SW, LW   = 10, 200
-ATR_RISK = 0.01
-ATR_MULT = 2.0
-DEPLOY   = 0.95
+FEE         = 0.006
+CAPITAL     = 100_000.0
+SW, LW      = 10, 200
+ATR_RISK    = 0.01
+ATR_MULT    = 2.0
+MAX_POS_PCT = 0.25    # max 25% of current equity per position
 
 ASSETS = {
     "BTC": ROOT / "data" / "4h-regular-COINBASE-BTCUSD.csv",
@@ -60,12 +61,14 @@ def backtest(df: pd.DataFrame) -> dict:
         death  = (sma_s[i-1] > sma_l[i-1]) and (not (sma_s[i] > sma_l[i]))
 
         if not in_pos and golden:
-            atr = atr_v[i]
+            atr      = atr_v[i]
+            equity_now = cash                          # qty == 0 at entry
+            cap_qty  = (equity_now * MAX_POS_PCT) / (close[i] * (1 + FEE/2))
             if not np.isnan(atr) and atr > 0:
-                qty = min((cash * ATR_RISK) / (atr * ATR_MULT),
-                          (cash * DEPLOY)  / (close[i] * (1 + FEE/2)))
+                atr_qty = (equity_now * ATR_RISK) / (atr * ATR_MULT)
+                qty = min(atr_qty, cap_qty)
             else:
-                qty = (cash * DEPLOY) / (close[i] * (1 + FEE/2))
+                qty = cap_qty
             cash -= qty * close[i] * (1 + FEE/2)
             entry_price = close[i]
             in_pos = True
@@ -108,7 +111,7 @@ def backtest(df: pd.DataFrame) -> dict:
         win_rate   = round(win_rate * 100, 1),
         avg_win_pct= round(avg_win  * 100, 2),
         avg_loss_pct=round(avg_loss * 100, 2),
-        final_equity=round(cash + (qty * eq.iloc[-1] if in_pos else 0), 2),
+        final_equity=round(cash, 2),
     )
 
 
