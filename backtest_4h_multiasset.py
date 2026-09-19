@@ -2,6 +2,7 @@
 """
 Run the Tier-2 best config (SMA 10/200 + ATR 1%/2.0×) across ETH, SOL, LINK.
 Position size = min(ATR-based, MAX_POS_PCT × equity) to cap compounding blow-up.
+Anti-rug pre-entry checks filter zero-volume, pump spikes, and low-liquidity bars.
 Compares each asset against the BTC baseline and reports cross-asset consistency.
 """
 from __future__ import annotations
@@ -30,12 +31,37 @@ ATR_RISK    = 0.01
 ATR_MULT    = 2.0
 MAX_POS_PCT = 0.25    # max 25% of current equity per position
 
+MIN_LIQUIDITY_USD    = 25_000   # min estimated 4h dollar volume at entry
+MAX_SINGLE_BAR_SURGE = 3.0      # reject >300% single-bar close-to-close spike
+
 ASSETS = {
     "BTC": ROOT / "data" / "4h-regular-COINBASE-BTCUSD.csv",
     "ETH": ROOT / "data" / "4h-regular-COINBASE-ETHUSD.csv",
     "SOL": ROOT / "data" / "4h-regular-COINBASE-SOLUSD.csv",
     "LINK": ROOT / "data" / "4h-regular-COINBASE-LINKUSD.csv",
 }
+
+
+def passes_anti_rug_checks(
+    df: pd.DataFrame,
+    current_idx: int,
+    min_liquidity_usd: float = MIN_LIQUIDITY_USD,
+    max_single_bar_surge: float = MAX_SINGLE_BAR_SURGE,
+) -> tuple[bool, str]:
+    row      = df.iloc[current_idx]
+    prev_row = df.iloc[current_idx - 1]
+
+    if row["volume"] <= 0:
+        return False, "Zero Volume Trap"
+
+    bar_return = (row["close"] - prev_row["close"]) / prev_row["close"]
+    if bar_return > max_single_bar_surge:
+        return False, "Artificial Pump Spike (Potential Honeypot)"
+
+    if row["close"] * row["volume"] < min_liquidity_usd:
+        return False, "Low Liquidity / High Slippage Risk"
+
+    return True, "Passed"
 
 
 def backtest(df: pd.DataFrame) -> dict:
@@ -53,6 +79,7 @@ def backtest(df: pd.DataFrame) -> dict:
     cash = CAPITAL; qty = 0.0; in_pos = False
     equity: list[float] = []
     n_trades = 0
+    n_blocked = 0
     trade_rets: list[float] = []
     entry_price = 0.0
 
@@ -61,6 +88,12 @@ def backtest(df: pd.DataFrame) -> dict:
         death  = (sma_s[i-1] > sma_l[i-1]) and (not (sma_s[i] > sma_l[i]))
 
         if not in_pos and golden:
+            ok, _ = passes_anti_rug_checks(df, i)
+            if not ok:
+                n_blocked += 1
+                equity.append(cash + qty * close[i])
+                continue
+
             atr      = atr_v[i]
             equity_now = cash                          # qty == 0 at entry
             cap_qty  = (equity_now * MAX_POS_PCT) / (close[i] * (1 + FEE/2))
@@ -101,6 +134,7 @@ def backtest(df: pd.DataFrame) -> dict:
 
     return dict(
         n_trades   = n_trades,
+        n_blocked  = n_blocked,
         years      = round(years, 2),
         trades_yr  = round(n_trades / max(years, 1), 1),
         cagr       = round(float(qs.stats.cagr(ret))          * 100, 4),
@@ -118,7 +152,7 @@ def backtest(df: pd.DataFrame) -> dict:
 JOURNAL_COLS = [
     "strategy","timeframe","asset","ma_type","short_window","long_window",
     "atr_sizing","risk_pct","atr_mult",
-    "n_trades","years","trades_yr","cagr","sharpe","max_dd","sortino","calmar",
+    "n_trades","n_blocked","years","trades_yr","cagr","sharpe","max_dd","sortino","calmar",
     "win_rate","avg_win_pct","avg_loss_pct","final_equity",
     "recorded_at","notes",
 ]
@@ -159,7 +193,7 @@ def main() -> None:
             continue
 
         results[asset] = r
-        print(f"N={r['n_trades']:>3}  "
+        print(f"N={r['n_trades']:>3}  blocked={r['n_blocked']:>2}  "
               f"Sharpe={r['sharpe']:>7.4f}  "
               f"MaxDD={r['max_dd']:>7.2f}%  "
               f"CAGR={r['cagr']:>7.2f}%  "
@@ -179,17 +213,17 @@ def main() -> None:
     if len(results) < 2:
         return
 
-    print(f"\n{'═'*85}")
-    print(f"  {'Asset':<6} {'N':>4} {'Yrs':>4} {'N/yr':>5}  "
+    print(f"\n{'═'*95}")
+    print(f"  {'Asset':<6} {'N':>4} {'Blk':>4} {'Yrs':>4} {'N/yr':>5}  "
           f"{'Sharpe':>7}  {'MaxDD%':>8}  {'CAGR%':>7}  {'WR%':>6}  "
           f"{'AvgW%':>6}  {'AvgL%':>7}  {'Final $':>10}")
-    print(f"  {'─'*6} {'─'*4} {'─'*4} {'─'*5}  "
+    print(f"  {'─'*6} {'─'*4} {'─'*4} {'─'*4} {'─'*5}  "
           f"{'─'*7}  {'─'*8}  {'─'*7}  {'─'*6}  "
           f"{'─'*6}  {'─'*7}  {'─'*10}")
 
     for asset, r in results.items():
         flag = " ← BTC baseline" if asset == "BTC" else ""
-        print(f"  {asset:<6} {r['n_trades']:>4} {r['years']:>4.1f} {r['trades_yr']:>5.1f}  "
+        print(f"  {asset:<6} {r['n_trades']:>4} {r['n_blocked']:>4} {r['years']:>4.1f} {r['trades_yr']:>5.1f}  "
               f"{r['sharpe']:>7.4f}  {r['max_dd']:>8.2f}  {r['cagr']:>7.2f}  "
               f"{r['win_rate']:>6.1f}  {r['avg_win_pct']:>6.2f}  "
               f"{r['avg_loss_pct']:>7.2f}  {r['final_equity']:>10,.0f}{flag}")
